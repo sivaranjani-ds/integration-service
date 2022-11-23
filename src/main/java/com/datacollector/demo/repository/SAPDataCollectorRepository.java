@@ -1,7 +1,9 @@
 package com.datacollector.demo.repository;
 
+import com.datacollector.demo.mapper.ResultsetMapper;
 import com.datacollector.demo.model.Employee;
 import lombok.extern.java.Log;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -22,6 +24,9 @@ public class SAPDataCollectorRepository implements DataCollectorRepository  {
     @Value("${sap.connection.password}")
     private String password;
 
+    @Autowired
+    ResultsetMapper resultsetMapper;
+
     @Override
     public List<String> getTableDetails(String schemaName) {
         List<String> tableNames = new ArrayList<>();
@@ -31,9 +36,9 @@ public class SAPDataCollectorRepository implements DataCollectorRepository  {
                 String query = "Select TABLE_NAME as tableName from TABLES WHERE SCHEMA_NAME='" + schemaName + "'";
                 Statement statement = connection.createStatement();
                 ResultSet resultSet = executeQuery(statement, query);
-                while (resultSet.next()) {
-                    tableNames.add(resultSet.getString(1));
-                }
+
+                tableNames.addAll(resultsetMapper.tableNameMapper(resultSet));
+
                 resultSet.close();
                 statement.close();
                 connection.close();
@@ -53,13 +58,8 @@ public class SAPDataCollectorRepository implements DataCollectorRepository  {
                 String query = "Select ID as id, NAME as name from " + tableName;
                 ResultSet resultSet = executeQuery(statement, query);
 
-                while (resultSet.next()) {
-                    employees.add(
-                            new Employee(
-                                    resultSet.getInt(1),
-                                    resultSet.getString(2)
-                            ));
-                }
+                employees = resultsetMapper.employeeMapper(resultSet);
+
                 resultSet.close();
                 statement.close();
                 connection.close();
