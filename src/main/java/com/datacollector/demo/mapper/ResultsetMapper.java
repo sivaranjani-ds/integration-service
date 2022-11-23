@@ -24,7 +24,7 @@ public class ResultsetMapper {
         while (resultSet.next()) {
             employees.add(
                     new Employee(
-                            resultSet.getInt("id"),
+                            resultSet.getLong("id"),
                             resultSet.getString("name")
                     ));
         }
